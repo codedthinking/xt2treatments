@@ -1,7 +1,7 @@
 ---
 author: Koren, Miklós (https://koren.mk)
 date: 2024-03-18
-version: 0.1.2
+version: 0.2.0
 title: XT2TREATMENTS - XTHDIDREGRESS with two treatments
 description: |
     Computes Callaway and Sant'Anna (2020) estimator for the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
