@@ -1,0 +1,6 @@
+stata.toc
+xt2treatments.pkg
+xt2treatments.ado
+xt2treatments.sthlp
+LICENSE
+CITATION.cff
