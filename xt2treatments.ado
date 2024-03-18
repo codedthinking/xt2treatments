@@ -1,4 +1,4 @@
-*! version 0.2.0 18mar2024
+*! version 0.3.0 18mar2024
 program xt2treatments, eclass
 syntax varname, treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) ]
 if ("`baseline'" == "") {
@@ -32,52 +32,27 @@ quietly levelsof `time', local(ts)
 quietly egen `yg' = mean(cond(`time' == `time_g' - 1, `y', .)), by(`group')
 quietly generate `dy' = `y' - `yg'
 
-capture drop att_*_*
-local G : word count `gs'
-local T : word count `ts'
-local GT = `G' * `T'
-foreach g in `gs' {
-    foreach t in `ts' {
-        quietly generate byte att_`g'_`t' = cond(`time' == `t' & `time_g' == `g', `evert', 0)
-    }
+capture drop _att_*
+forvalues t = `pre'(-1)1 {
+    quietly generate byte _att_m`t' = cond(`time' - `time_g' == -`t', `evert', 0)
+}
+forvalues t = 0(1)`post' {
+    quietly generate byte _att_`t' = cond(`time' - `time_g' == `t', `evert', 0)
 }
 
 ***** This is the actual estimation
-quietly reghdfe `dy' att_*_*, a(`time_g'##`time') cluster(`group') nocons
+quietly reghdfe `dy' _att_* if inrange(`time' - `time_g', -`pre', `post'), a(`time_g'##`time') cluster(`group') nocons
 matrix `bad_coef' = e(b)
 matrix `bad_Var' = e(V)
 tempvar esample
 * exclude observations outside of the event window
-quietly generate `esample' = e(sample) & inrange(`time' - `time_g', -`pre', `post')
+quietly generate `esample' = e(sample) 
 quietly count if `esample'
 local Nobs = r(N)
 ******
 
-capture drop att_*_*
+capture drop _att_*
 local names : colfullnames(`bad_coef'), quoted
-
-matrix `Wevent' = J(`GT', `K', 0.0)
-matrix rownames `Wevent' = `names'
-local i = 0
-foreach g in `gs' {
-    foreach t in `ts' {
-        local i = `i' + 1
-        local e = `t' - `g'
-        local j = `e' + `pre' + 1
-        if (`j' > 0) & (`j' <= `K') {
-            matrix `Wevent'[`i', `j'] = 1.0
-        }
-    }
-}
-* each column should sum to 1 so that the matrix computes an average
-matrix `summation' = J(`GT', `GT', 1)
-matrix `colsum' = `summation' * `Wevent'
-* do elementwise division
-forvalues row = 1/`GT' {
-    forvalues col = 1/`K' {
-        matrix `Wevent'[`row', `col'] = `Wevent'[`row', `col'] / `colsum'[`row', `col']
-    }
-}
 
 if ("`baseline'" == "average") {
     matrix `W0' = I(`K') - (J(`K', `pre', 1/`pre'), J(`K', `post'+1, 0))
@@ -96,8 +71,8 @@ else {
         matrix `W0'[`i', `bl'] = `W0'[`i', `bl'] - 1.0
     }
 }
-matrix `b' = `bad_coef' * `Wevent' * `W0''
-matrix `V' = `W0' * `Wevent'' * `bad_Var' * `Wevent' * `W0''
+matrix `b' = `bad_coef' * `W0''
+matrix `V' = `W0' * `bad_Var' * `W0''
 
 if ("`baseline'" == "atet") {
     local colnames "ATET"

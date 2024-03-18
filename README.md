@@ -1,7 +1,7 @@
 ---
 author: Koren, Miklós (https://koren.mk)
 date: 2024-03-18
-version: 0.2.0
+version: 0.3.0
 title: XT2TREATMENTS - XTHDIDREGRESS with two treatments
 description: |
     Computes Callaway and Sant'Anna (2020) estimator for the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
@@ -12,7 +12,7 @@ requires: Stata version 18
 
 # Syntax
 
-- `xt2treatments` varname, **treatment**(varname) **control**(varname) [if] [in]
+- `xt2treatments` varname, **treatment**(varname) **control**(varname), [**pre**(#) **post**(#) **baseline**(*string*)]
 
 `xt2treatments` estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control. 
 
@@ -27,6 +27,9 @@ Option | Description
 -------|------------
 **treatment** | Dummy variable indicating the treatment of interest.
 **control** | Dummy variable indicating the control treatment.
+**pre** | Number of periods before treatment to include in the estimation (default 1)
+**post** | Number of periods after treatment to include in the estimation (default 3)
+**baseline** | Either a negative number between `-pre` and `-1` or `average`, or `atet`. If `-k`, the baseline is the kth period before the treatment. If `average`, the baseline is the average of the pre-treatment periods. If `atet`, the regression table reports the average of the post-treatment periods minus the average of the pre-treatment periods. Default is `-1`.
 
 # Background
 `xthdidregress` estimates ATT against various control groups. However, it does not allow for two treatments. 
