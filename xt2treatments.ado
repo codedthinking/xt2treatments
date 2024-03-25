@@ -1,4 +1,4 @@
-*! version 0.3.0 18mar2024
+*! version 0.3.1 25mar2024
 program xt2treatments, eclass
 syntax varname, treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) ]
 if ("`baseline'" == "") {
@@ -13,7 +13,7 @@ local group = r(panelvar)
 local time = r(timevar)
 local y `varlist'
 
-tempvar yg  evert everc time_g dy
+tempvar yg  evert everc time_g dy eventtime
 tempname Wevent W0 attgt colsum bad_coef bad_Var b V summation
 
 quietly egen `evert' = max(`treatment'), by(`group')
@@ -25,23 +25,24 @@ assert !(`evert' & `everc')
 quietly egen `time_g' = min(cond(`treatment' | `control', `time', .)), by(`group')
 * everyone receives treatment
 assert !missing(`time_g')
+quietly generate `eventtime' = `time' - `time_g'
 
 quietly levelsof `time_g', local(gs)
 quietly levelsof `time', local(ts)
 
-quietly egen `yg' = mean(cond(`time' == `time_g' - 1, `y', .)), by(`group')
+quietly egen `yg' = mean(cond(`eventtime' == -1, `y', .)), by(`group')
 quietly generate `dy' = `y' - `yg'
 
 capture drop _att_*
 forvalues t = `pre'(-1)1 {
-    quietly generate byte _att_m`t' = cond(`time' - `time_g' == -`t', `evert', 0)
+    quietly generate byte _att_m`t' = cond(`eventtime' == -`t', `evert', 0)
 }
 forvalues t = 0(1)`post' {
-    quietly generate byte _att_`t' = cond(`time' - `time_g' == `t', `evert', 0)
+    quietly generate byte _att_`t' = cond(`eventtime' == `t', `evert', 0)
 }
 
 ***** This is the actual estimation
-quietly reghdfe `dy' _att_* if inrange(`time' - `time_g', -`pre', `post'), a(`time_g'##`time') cluster(`group') nocons
+quietly reghdfe `dy' _att_* if inrange(`eventtime', -`pre', `post'), a(`eventtime') cluster(`group') nocons
 matrix `bad_coef' = e(b)
 matrix `bad_Var' = e(V)
 tempvar esample

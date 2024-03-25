@@ -1,7 +1,7 @@
 ---
 author: Koren, Miklós (https://koren.mk)
-date: 2024-03-18
-version: 0.3.0
+date: 2024-03-25
+version: 0.3.1
 title: XT2TREATMENTS - XTHDIDREGRESS with two treatments
 description: |
     Computes Callaway and Sant'Anna (2020) estimator for the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
@@ -48,4 +48,5 @@ The command returns, as part of `e()`, the coefficients and standard errors. See
 You are free to use this package under the terms of its [license](https://github.com/codedthinking/xt2treatments/blob/main/LICENSE). If you use it, please the software package in your work:
 
 - Koren, Miklós. (2024). XT2TREATMENTS - XTHDIDREGRESS with two treatments (Version 0.1.0) [Computer software]
+
 
