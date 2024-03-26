@@ -15,7 +15,7 @@
 
 {pstd}The package can be installed with{p_end}
 
-{p 8 16 2}net install xt2treatments, from(https://raw.githubusercontent.com/codedthinking/xt2treatments/main/)
+{p 8 16 2}net install xt2treatments, from(https://raw.githubusercontent.com/codedthinking/xt2treatments/main/) replace
 
 
 {marker options}{...}
@@ -42,6 +42,8 @@
 {pstd}{cmd:xthdidregress} estimates ATT against various control groups. However, it does not allow for two treatments.{p_end}
 
 {pstd}When the control group is another treatment happening at the same time, the ATT is the difference between the treatment and the control.{p_end}
+
+{pstd}The event study aggregates after {cmd:xthdidregress} weight each treatment time {it:g} by the number of treated units at time {it:g}. To yield comparable results, {cmd:xt2treatments} uses the same weights. Note that this overweights observations far away from the treatment in unbalanced panels. For example, if 100 units are treated in 1999, but only 10 of those survive until 2009, the surviving units receive an inverse-probability weight of 10.{p_end}
 
 
 {marker remarks}{...}

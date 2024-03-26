@@ -6,14 +6,14 @@ d
 d Authors: Koren, Miklós (https://koren.mk)
 d Support: 
 d 
-d Computes Callaway and Sant'Anna (2020) estimator for the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
+d Computes the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
 d 
 d For details, see website:
 d https://github.com/codedthinking/xt2treatments
 d
 d Requires: Stata version 18
 d
-d Distribution-Date: 20240325
+d Distribution-Date: 20240326
 d
 
 

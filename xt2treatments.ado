@@ -1,4 +1,4 @@
-*! version 0.3.1 25mar2024
+*! version 0.4.0 26mar2024
 program xt2treatments, eclass
 syntax varname, treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) ]
 if ("`baseline'" == "") {
@@ -13,7 +13,7 @@ local group = r(panelvar)
 local time = r(timevar)
 local y `varlist'
 
-tempvar yg  evert everc time_g dy eventtime
+tempvar yg  evert everc time_g dy eventtime n_g n_gt pw
 tempname Wevent W0 attgt colsum bad_coef bad_Var b V summation
 
 quietly egen `evert' = max(`treatment'), by(`group')
@@ -26,6 +26,9 @@ quietly egen `time_g' = min(cond(`treatment' | `control', `time', .)), by(`group
 * everyone receives treatment
 assert !missing(`time_g')
 quietly generate `eventtime' = `time' - `time_g'
+quietly egen `n_gt' = count(1), by(`time_g' `time')
+quietly egen `n_g' = max(`n_gt'), by(`time_g')
+quietly generate `pw' = `n_g' / `n_gt'
 
 quietly levelsof `time_g', local(gs)
 quietly levelsof `time', local(ts)
@@ -42,7 +45,7 @@ forvalues t = 0(1)`post' {
 }
 
 ***** This is the actual estimation
-quietly reghdfe `dy' _att_* if inrange(`eventtime', -`pre', `post'), a(`eventtime') cluster(`group') nocons
+quietly reghdfe `dy' _att_* [pw=`pw'] if inrange(`eventtime', -`pre', `post'), a(`eventtime') cluster(`group') nocons
 matrix `bad_coef' = e(b)
 matrix `bad_Var' = e(V)
 tempvar esample
@@ -74,7 +77,6 @@ else {
 }
 matrix `b' = `bad_coef' * `W0''
 matrix `V' = `W0' * `bad_Var' * `W0''
-
 if ("`baseline'" == "atet") {
     local colnames "ATET"
 }
