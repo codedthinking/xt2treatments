@@ -1,4 +1,4 @@
-*! version 0.4.0 26mar2024
+*! version 0.5.0 28mar2024
 program xt2treatments, eclass
 syntax varname, treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) ]
 if ("`baseline'" == "") {
@@ -45,7 +45,7 @@ forvalues t = 0(1)`post' {
 }
 
 ***** This is the actual estimation
-quietly reghdfe `dy' _att_* [pw=`pw'] if inrange(`eventtime', -`pre', `post'), a(`eventtime') cluster(`group') nocons
+quietly reghdfe `dy' _att_* if inrange(`eventtime', -`pre', `post'), a(`eventtime') cluster(`group') nocons
 matrix `bad_coef' = e(b)
 matrix `bad_Var' = e(V)
 tempvar esample

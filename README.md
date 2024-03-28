@@ -1,14 +1,14 @@
 ---
 author: Koren, Miklós (https://koren.mk)
-date: 2024-03-25
-version: 0.3.1
-title: XT2TREATMENTS - XTHDIDREGRESS with two treatments
+date: 2024-03-28
+version: 0.4.0
+title: XT2TREATMENTS - event study with two treatments
 description: |
-    Computes Callaway and Sant'Anna (2020) estimator for the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
+    Computes the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
 url: https://github.com/codedthinking/xt2treatments
 requires: Stata version 18
 ---
-# `xt2treatments` is `xthdidregress` with two treatments
+# `xt2treatments` estimates event studies with two treatments
 
 # Syntax
 
@@ -18,7 +18,7 @@ requires: Stata version 18
 
 The package can be installed with
 ```
-net install xt2treatments, from(https://raw.githubusercontent.com/codedthinking/xt2treatments/main/)
+net install xt2treatments, from(https://raw.githubusercontent.com/codedthinking/xt2treatments/main/) replace
 ```
 
 # Options
@@ -36,17 +36,13 @@ Option | Description
 
 When the control group is another treatment happening at the same time, the ATT is the difference between the treatment and the control. 
 
-
 # Remarks
 The command returns, as part of `e()`, the coefficients and standard errors. See `ereturn list` after running the command. Typical post-estimation commands can be used, such as `outreg2` or `estout`.
-
 
 # Authors
 - Miklós Koren (Central European University, https://koren.mk), *maintainer*
 
 # License and Citation
-You are free to use this package under the terms of its [license](https://github.com/codedthinking/xt2treatments/blob/main/LICENSE). If you use it, please the software package in your work:
+You are free to use this package under the terms of its [license](https://github.com/codedthinking/xt2treatments/blob/main/LICENSE). If you use it, please cite the software package in your work:
 
-- Koren, Miklós. (2024). XT2TREATMENTS - XTHDIDREGRESS with two treatments (Version 0.1.0) [Computer software]
-
-
+- Koren, Miklós. (2024). XT2TREATMENTS - event study with two treatments (Version 0.1.0) [Computer software]

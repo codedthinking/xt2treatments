@@ -1,8 +1,8 @@
 {smcl}
 
 
-{marker xt2treatments-is-xthdidregress-with-two-treatments}{...}
-{title:{cmd:xt2treatments} is {cmd:xthdidregress} with two treatments}
+{marker xt2treatments-estimates-event-studies-with-two-treatments}{...}
+{title:{cmd:xt2treatments} estimates event studies with two treatments}
 
 
 {marker syntax}{...}
@@ -43,8 +43,6 @@
 
 {pstd}When the control group is another treatment happening at the same time, the ATT is the difference between the treatment and the control.{p_end}
 
-{pstd}The event study aggregates after {cmd:xthdidregress} weight each treatment time {it:g} by the number of treated units at time {it:g}. To yield comparable results, {cmd:xt2treatments} uses the same weights. Note that this overweights observations far away from the treatment in unbalanced panels. For example, if 100 units are treated in 1999, but only 10 of those survive until 2009, the surviving units receive an inverse-probability weight of 10.{p_end}
-
 
 {marker remarks}{...}
 {title:Remarks}
@@ -62,6 +60,6 @@
 {marker license-and-citation}{...}
 {title:License and Citation}
 
-{pstd}You are free to use this package under the terms of its {browse "https://github.com/codedthinking/xt2treatments/blob/main/LICENSE"}. If you use it, please the software package in your work:{p_end}
+{pstd}You are free to use this package under the terms of its {browse "https://github.com/codedthinking/xt2treatments/blob/main/LICENSE"}. If you use it, please cite the software package in your work:{p_end}
 
-{text}{phang2}Koren, Miklós. (2024). XT2TREATMENTS - XTHDIDREGRESS with two treatments (Version 0.1.0) [Computer software]{p_end}
+{text}{phang2}Koren, Miklós. (2024). XT2TREATMENTS - event study with two treatments (Version 0.1.0) [Computer software]{p_end}
