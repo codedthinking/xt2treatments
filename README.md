@@ -1,7 +1,7 @@
 ---
 author: Koren, Miklós (https://koren.mk)
-date: 2024-03-28
-version: 0.4.0
+date: 2024-04-30
+version: 0.6.1
 title: XT2TREATMENTS - event study with two treatments
 description: |
     Computes the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
@@ -10,9 +10,10 @@ requires: Stata version 18
 ---
 # `xt2treatments` estimates event studies with two treatments
 
+
 # Syntax
 
-- `xt2treatments` varname, **treatment**(varname) **control**(varname), [**pre**(#) **post**(#) **baseline**(*string*)]
+- `xt2treatments` varname, **treatment**(varname) **control**(varname), [**pre**(#) **post**(#) **baseline**(*string*) **weight**(varname)]
 
 `xt2treatments` estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control. 
 
@@ -30,6 +31,7 @@ Option | Description
 **pre** | Number of periods before treatment to include in the estimation (default 1)
 **post** | Number of periods after treatment to include in the estimation (default 3)
 **baseline** | Either a negative number between `-pre` and `-1` or `average`, or `atet`. If `-k`, the baseline is the kth period before the treatment. If `average`, the baseline is the average of the pre-treatment periods. If `atet`, the regression table reports the average of the post-treatment periods minus the average of the pre-treatment periods. Default is `-1`.
+**weight** | Variable to use as weights in the estimation.
 
 # Background
 `xthdidregress` estimates ATT against various control groups. However, it does not allow for two treatments. 

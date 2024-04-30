@@ -11,5 +11,5 @@ authors:
 identifiers:
   - type: url
     value: 'https://github.com/codedthinking/xt2treatments'
-version: 0.5.0
-date-released: '2024-03-28'
+version: 0.6.1
+date-released: '2024-04-30'

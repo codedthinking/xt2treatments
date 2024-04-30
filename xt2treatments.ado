@@ -1,4 +1,4 @@
-*! version 0.5.0 28mar2024
+*! version 0.6.1 30apr2024
 program xt2treatments, eclass
 syntax varname, treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weight(varname)]
 if ("`baseline'" == "") {
