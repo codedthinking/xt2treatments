@@ -8,7 +8,7 @@
 {marker syntax}{...}
 {title:Syntax}
 
-{text}{phang2}{cmd:xt2treatments} varname, {bf:treatment}(varname) {bf:control}(varname), [{bf:pre}(#) {bf:post}(#) {bf:baseline}({it:string}) {bf:weight}(varname) {bf:graph}]{p_end}
+{text}{phang2}{cmd:xt2treatments} varname [{it:if}], {bf:treatment}(varname) {bf:control}(varname), [{bf:pre}(#) {bf:post}(#) {bf:baseline}({it:string}) {bf:weight}(varname) {bf:graph}]{p_end}
 
 
 {pstd}{cmd:xt2treatments} estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control.{p_end}

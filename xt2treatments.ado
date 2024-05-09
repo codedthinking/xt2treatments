@@ -1,11 +1,13 @@
-*! version 0.7.0 09may2024
+*! version 0.8.0 09may2024
 program xt2treatments, eclass
-syntax varname, treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weight(varname) graph]
+syntax varname [if], treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weight(varname) graph]
 if ("`baseline'" == "") {
     local baseline "-1"
 }   
 local T1 = `pre'-1
 local K = `pre'+`post'+1
+
+marksample touse
 
 * read panel structure
 xtset
@@ -16,21 +18,21 @@ local y `varlist'
 tempvar yg  evert everc time_g dy eventtime n_g n_gt
 tempname w W0 bad_coef bad_Var b V Wcum Wsum D  
 
-quietly egen `evert' = max(`treatment'), by(`group')
-quietly egen `everc' = max(`control'), by(`group')
+quietly egen `evert' = max(cond(`touse', `treatment', 0)), by(`group')
+quietly egen `everc' = max(cond(`touse', `control', 0)), by(`group')
 
 * no two treatment can happen to the same group
-assert !(`evert' & `everc')
+assert !(`evert' & `everc') if `touse'
 
-quietly egen `time_g' = min(cond(`treatment' | `control', `time', .)), by(`group')
+quietly egen `time_g' = min(cond(`treatment' | `control', `time', .)) if `touse', by(`group')
 * everyone receives treatment
-assert !missing(`time_g')
-quietly generate `eventtime' = `time' - `time_g'
-quietly egen `n_gt' = count(1), by(`time_g' `time')
-quietly egen `n_g' = max(`n_gt'), by(`time_g')
+assert !missing(`time_g')  if `touse'
+quietly generate `eventtime' = `time' - `time_g'  if `touse'
+quietly egen `n_gt' = count(1)  if `touse', by(`time_g' `time') 
+quietly egen `n_g' = max(`n_gt')  if `touse', by(`time_g')
 
-quietly levelsof `time_g', local(gs)
-quietly levelsof `time', local(ts)
+quietly levelsof `time_g'  if `touse', local(gs)
+quietly levelsof `time'  if `touse', local(ts)
 
 local G : word count `gs'
 local T : word count `ts'
@@ -43,25 +45,25 @@ forvalues g = 1/`G' {
         matrix `w'[`g', 1] = 1.0
     }
     else {
-        summarize `weight' if `time_g' == `cohort', meanonly
+        summarize `weight' if `time_g' == `cohort' & (`touse'), meanonly
         matrix `w'[`g', 1] = r(mean)
     }
 }
 
-quietly egen `yg' = mean(cond(`eventtime' == -1, `y', .)), by(`group')
-quietly generate `dy' = `y' - `yg'
+quietly egen `yg' = mean(cond(`eventtime' == -1, `y', .)) if `touse', by(`group')
+quietly generate `dy' = `y' - `yg' if `touse'
 
 capture drop _att_*
 forvalues g = 1/`G' {
     forvalues t = 2/`T' {
         local running_time : word `t' of `ts'
         local treatment_time : word `g' of `gs'
-        quietly generate byte _att_`g'_`t' = cond(`time_g' == `treatment_time' & `time' == `running_time', `evert', 0)
+        quietly generate byte _att_`g'_`t' = cond(`time_g' == `treatment_time' & `time' == `running_time', `evert', 0) if `touse'
     }
 }
 
 ***** This is the actual estimation
-quietly reghdfe `dy' _att_*_*, a(`time_g'##`time') cluster(`group') nocons
+quietly reghdfe `dy' _att_*_* if `touse', a(`time_g'##`time') cluster(`group') nocons
 matrix `bad_coef' = e(b)
 matrix `bad_Var' = e(V)
 
@@ -90,6 +92,7 @@ matrix `Wcum' = `Wcum' * inv(`D')
 tempvar esample
 * exclude observations outside of the event window
 quietly generate `esample' = e(sample) 
+quietly replace `esample' = 0 if !`touse'
 quietly count if `esample'
 local Nobs = r(N)
 ******
