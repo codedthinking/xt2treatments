@@ -1,7 +1,7 @@
 ---
 author: Koren, Miklós (https://koren.mk)
 date: 2024-05-09
-version: 0.7.0
+version: 0.8.0
 title: XT2TREATMENTS - event study with two treatments
 description: |
     Computes the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
@@ -13,7 +13,7 @@ requires: Stata version 18
 
 # Syntax
 
-- `xt2treatments` varname, **treatment**(varname) **control**(varname), [**pre**(#) **post**(#) **baseline**(*string*) **weight**(varname) **graph**]
+- `xt2treatments` varname [*if*], **treatment**(varname) **control**(varname), [**pre**(#) **post**(#) **baseline**(*string*) **weight**(varname) **graph**]
 
 `xt2treatments` estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control. 
 
