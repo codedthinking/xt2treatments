@@ -1,6 +1,6 @@
-*! version 0.6.1 30apr2024
+*! version 0.7.0 09may2024
 program xt2treatments, eclass
-syntax varname, treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weight(varname)]
+syntax varname, treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weight(varname) graph]
 if ("`baseline'" == "") {
     local baseline "-1"
 }   
@@ -128,6 +128,20 @@ matrix colname `b' = `colnames'
 matrix colname `V' = `colnames'
 matrix rowname `V' = `colnames'
 
+local level 95
+tempname coefplot
+matrix `coefplot' = J(`K', 4, .)
+matrix colname `coefplot' = xvar b ll ul
+local tlabels ""
+forvalues t = -`pre'/`post' {
+    local tlabels `tlabels' `t'
+    local i = `t' + `pre' + 1
+    matrix `coefplot'[`i', 1] = `t''
+    matrix `coefplot'[`i', 2] = `b'[1, `i']
+    matrix `coefplot'[`i', 3] = `b'[1, `i'] + invnormal((100-`level')/200) * sqrt(`V'[`i', `i'])
+    matrix `coefplot'[`i', 4] = `b'[1, `i'] - invnormal((100-`level')/200) * sqrt(`V'[`i', `i'])
+}
+
 ereturn post `b' `V', obs(`Nobs') esample(`esample')
 ereturn local depvar `y'
 ereturn local cmd xt2treatments
@@ -137,4 +151,11 @@ _coef_table_header, title(Event study relative to `baseline') width(62)
 display
 _coef_table, bmat(e(b)) vmat(e(V)) level(`level') 	///
     depname(`depvar') coeftitle(ATET)
+
+if ("`graph'" == "graph") {
+    hetdid_coefplot, mat(`coefplot') title(Event study relative to `baseline') ///
+        ylb(`y') xlb("Length of exposure to the treatment") ///
+        yline(0) legend(off) level(`level') yline(0,  extend) ytick(0, add) ylabel(0, add) xlabel(`tlabels')
+}
+
 end
