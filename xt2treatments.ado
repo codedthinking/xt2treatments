@@ -1,4 +1,4 @@
-*! version 0.8.1 10may2024
+*! version 0.8.2 10may2024
 program xt2treatments, eclass
 syntax varname [if], treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) graph]
 if ("`baseline'" == "") {
@@ -42,22 +42,28 @@ local T : word count `ts'
 local N = `G' * (`T' - 1)
 
 tempname n1 n0
-matrix `w' = J(`G', 1, .)
+matrix `w' = J(`G', `=`T'-1', 0.0)
 forvalues g = 1/`G' {
-    local cohort : word `g' of `gs'
-    if ("`weighting'" == "equal") {
-        matrix `w'[`g', 1] = 1.0
-    }
-    if ("`weighting'" == "proportional") {
-        quietly count if `time_g' == `cohort' & (`touse')
-        matrix `w'[`g', 1] = r(N)
-    }
-    if ("`weighting'" == "optimal") {
-        quietly count if `time_g' == `cohort' & (`touse') & `everc'
-        scalar `n0' = r(N)
-        quietly count if `time_g' == `cohort' & (`touse') & `evert'
-        scalar `n1' = r(N)
-        matrix `w'[`g', 1] = `n0' * `n1' / (`n0' + `n1')
+    forvalues t = 2/`T' {
+        local time_t : word `t' of `ts'
+        local cohort : word `g' of `gs'
+        local e = `time_t' - `cohort'
+        if inrange(`e', -`pre', `post') {
+            if ("`weighting'" == "equal") {
+                matrix `w'[`g', `t'] = 1.0
+            }
+            if ("`weighting'" == "proportional") {
+                quietly count if `time_g' == `cohort' & (`touse') & `time_t' == `time'
+                matrix `w'[`g', `t'] = r(N)
+            }
+            if ("`weighting'" == "optimal") {
+                quietly count if `time_g' == `cohort' & (`touse') & `everc' & `time_t' == `time'
+                scalar `n0' = r(N)
+                quietly count if `time_g' == `cohort' & (`touse') & `evert' & `time_t' == `time'
+                scalar `n1' = r(N)
+                matrix `w'[`g', 1] = `n0' * `n1' / (`n0' + `n1')
+            }
+        }
     }
 }
 
@@ -87,9 +93,9 @@ matrix `Wcum' = J(`GT', `K', 0)
 local i = 1
 forvalues g = 1/`G' {
     forvalues t = 2/`T' {
-        local time : word `t' of `ts'
+        local time_t : word `t' of `ts'
         local start : word `g' of `gs'
-        local e = `time' - `start'
+        local e = `time_t' - `start'
         if inrange(`e', -`pre', `post') {
             matrix `Wcum'[`i', `e' + `pre' + 1] = `w'[`g', 1]
         }

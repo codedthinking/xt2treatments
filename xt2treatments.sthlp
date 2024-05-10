@@ -76,4 +76,4 @@
 
 {pstd}You are free to use this package under the terms of its {browse "https://github.com/codedthinking/xt2treatments/blob/main/LICENSE"}. If you use it, please cite the software package in your work:{p_end}
 
-{text}{phang2}Koren, Miklós. (2024). XT2TREATMENTS - event study with two treatments (Version 0.1.0) [Computer software]{p_end}
+{text}{phang2}Koren, Miklós. (2024). XT2TREATMENTS - event study with two treatments [Computer software]. Avilable at {browse "https://github.com/codedthinking/xt2treatments"}{p_end}
