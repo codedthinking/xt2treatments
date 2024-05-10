@@ -1,9 +1,12 @@
-*! version 0.8.0 09may2024
+*! version 0.8.1 10may2024
 program xt2treatments, eclass
-syntax varname [if], treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weight(varname) graph]
+syntax varname [if], treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) graph]
 if ("`baseline'" == "") {
     local baseline "-1"
-}   
+}
+if ("`weighting'" == "") {
+    local weighting "equal"
+}
 local T1 = `pre'-1
 local K = `pre'+`post'+1
 
@@ -38,15 +41,23 @@ local G : word count `gs'
 local T : word count `ts'
 local N = `G' * (`T' - 1)
 
+tempname n1 n0
 matrix `w' = J(`G', 1, .)
 forvalues g = 1/`G' {
     local cohort : word `g' of `gs'
-    if "`weight'" == "" {
+    if ("`weighting'" == "equal") {
         matrix `w'[`g', 1] = 1.0
     }
-    else {
-        summarize `weight' if `time_g' == `cohort' & (`touse'), meanonly
-        matrix `w'[`g', 1] = r(mean)
+    if ("`weighting'" == "proportional") {
+        quietly count if `time_g' == `cohort' & (`touse')
+        matrix `w'[`g', 1] = r(N)
+    }
+    if ("`weighting'" == "optimal") {
+        quietly count if `time_g' == `cohort' & (`touse') & `everc'
+        scalar `n0' = r(N)
+        quietly count if `time_g' == `cohort' & (`touse') & `evert'
+        scalar `n1' = r(N)
+        matrix `w'[`g', 1] = `n0' * `n1' / (`n0' + `n1')
     }
 }
 
