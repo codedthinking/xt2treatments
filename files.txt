@@ -4,3 +4,5 @@ xt2treatments.ado
 xt2treatments.sthlp
 LICENSE
 CITATION.cff
+test/create_test_data.do
+test/testdata.dta

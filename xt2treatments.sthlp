@@ -50,6 +50,18 @@
 {synoptline}
 
 
+{marker examples}{...}
+{title:Examples}
+
+{p 8 16 2}use "test/testdata.dta", clear
+
+{p 8 16 2}xtset i t
+
+{p 8 16 2}xt2treatments y, treatment(treatmentB) control(treatmentA) pre(1) post(3) weighting(equal)
+
+{p 8 16 2}xt2treatments y, treatment(treatmentB) control(treatmentA) pre(3) post(3) weighting(optimal) graph
+
+
 {marker background}{...}
 {title:Background}
 

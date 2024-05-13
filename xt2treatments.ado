@@ -1,4 +1,4 @@
-*! version 0.8.2 10may2024
+*! version 0.8.3 12may2024
 program xt2treatments, eclass
 syntax varname [if], treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) graph]
 if ("`baseline'" == "") {
@@ -25,11 +25,22 @@ quietly egen `evert' = max(cond(`touse', `treatment', 0)), by(`group')
 quietly egen `everc' = max(cond(`touse', `control', 0)), by(`group')
 
 * no two treatment can happen to the same group
-assert !(`evert' & `everc') if `touse'
+capture assert !(`evert' & `everc') if `touse'
+if (_rc) {
+    display in red "Some groups receive both treatments"
+    inspect `group' if `evert' & `everc' & `touse'
+    error(459)
+}
 
 quietly egen `time_g' = min(cond(`treatment' | `control', `time', .)) if `touse', by(`group')
 * everyone receives treatment
-assert !missing(`time_g')  if `touse'
+capture assert !missing(`time_g')  if `touse'
+if (_rc) {
+    display in red "Some groups do not receive any treatment"
+    inspect `group' if !`evert' & !`everc' & `touse'
+    error(459)
+}
+
 quietly generate `eventtime' = `time' - `time_g'  if `touse'
 quietly egen `n_gt' = count(1)  if `touse', by(`time_g' `time') 
 quietly egen `n_g' = max(`n_gt')  if `touse', by(`time_g')
@@ -42,26 +53,26 @@ local T : word count `ts'
 local N = `G' * (`T' - 1)
 
 tempname n1 n0
-matrix `w' = J(`G', `=`T'-1', 0.0)
+matrix `w' = J(`G', `T', 0.0)
 forvalues g = 1/`G' {
     forvalues t = 2/`T' {
         local time_t : word `t' of `ts'
         local cohort : word `g' of `gs'
         local e = `time_t' - `cohort'
         if inrange(`e', -`pre', `post') {
+            quietly count if `time_g' == `cohort' & (`touse') & `everc' & `time_t' == `time'
+            scalar `n0' = r(N)
+            quietly count if `time_g' == `cohort' & (`touse') & `evert' & `time_t' == `time'
+            scalar `n1' = r(N)
             if ("`weighting'" == "equal") {
-                matrix `w'[`g', `t'] = 1.0
+                * if either of the groups has no observations, we cannot estimate a treatment effect
+                matrix `w'[`g', `t'] = cond(`n0'*`n1'==0, 0.0, 1.0)
             }
             if ("`weighting'" == "proportional") {
-                quietly count if `time_g' == `cohort' & (`touse') & `time_t' == `time'
-                matrix `w'[`g', `t'] = r(N)
+                matrix `w'[`g', `t'] = cond(`n0'*`n1'==0, 0.0, `n0' + `n1')
             }
             if ("`weighting'" == "optimal") {
-                quietly count if `time_g' == `cohort' & (`touse') & `everc' & `time_t' == `time'
-                scalar `n0' = r(N)
-                quietly count if `time_g' == `cohort' & (`touse') & `evert' & `time_t' == `time'
-                scalar `n1' = r(N)
-                matrix `w'[`g', 1] = `n0' * `n1' / (`n0' + `n1')
+                matrix `w'[`g', `t'] = cond(`n0'*`n1'==0, 0.0, `n0' * `n1' / (`n0' + `n1'))
             }
         }
     }
@@ -97,7 +108,7 @@ forvalues g = 1/`G' {
         local start : word `g' of `gs'
         local e = `time_t' - `start'
         if inrange(`e', -`pre', `post') {
-            matrix `Wcum'[`i', `e' + `pre' + 1] = `w'[`g', 1]
+            matrix `Wcum'[`i', `e' + `pre' + 1] = `w'[`g', `t']
         }
         local i = `i' + 1
     }
