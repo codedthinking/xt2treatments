@@ -8,7 +8,7 @@
 {marker syntax}{...}
 {title:Syntax}
 
-{text}{phang2}{cmd:xt2treatments} varname [{it:if}], {bf:treatment}(varname) {bf:control}(varname), [{bf:pre}(#) {bf:post}(#) {bf:baseline}({it:string}) {bf:weighting}(string) {bf:graph}]{p_end}
+{text}{phang2}{cmd:xt2treatments} varname(numeric) [{it:if}], {bf:treatment}(varname numeric) {bf:control}(varname numeric), [{bf:pre}(#) {bf:post}(#) {bf:baseline}({it:string}) {bf:weighting}(string) {bf:graph}]{p_end}
 
 
 {pstd}{cmd:xt2treatments} estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control.{p_end}
@@ -53,13 +53,49 @@
 {marker examples}{...}
 {title:Examples}
 
-{p 8 16 2}use "test/testdata.dta", clear
+{p 8 16 2}use "xt2treatments_testdata.dta", clear
 
 {p 8 16 2}xtset i t
 
 {p 8 16 2}xt2treatments y, treatment(treatmentB) control(treatmentA) pre(1) post(3) weighting(equal)
 
+{p 8 16 2}Panel variable: i (strongly balanced)
+ Time variable: t, 1 to 10
+         Delta: 1 unit
+
+Event study relative to -1               Number of obs = 1,000
+
+------------------------------------------------------------------------------
+           y |       ATET   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+          -1 |          0  (omitted)
+           0 |    .464904   .0179099    25.96   0.000     .4298014    .5000067
+           1 |   .4581741   .0177579    25.80   0.000     .4233694    .4929789
+           2 |   .4108288   .0173002    23.75   0.000     .3769211    .4447366
+           3 |   .3221394      .0199    16.19   0.000     .2831362    .3611426
+------------------------------------------------------------------------------
+
 {p 8 16 2}xt2treatments y, treatment(treatmentB) control(treatmentA) pre(3) post(3) weighting(optimal) graph
+
+{p 8 16 2}Panel variable: i (strongly balanced)
+ Time variable: t, 1 to 10
+         Delta: 1 unit
+
+Event study relative to -1               Number of obs = 1,000
+
+------------------------------------------------------------------------------
+           y |       ATET   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+          -3 |   .0188954   .0377553     0.50   0.617    -.0551037    .0928944
+          -2 |    -.01291   .0288885    -0.45   0.655    -.0695304    .0437105
+          -1 |          0  (omitted)
+           0 |   .2940147   .0263712    11.15   0.000     .2423281    .3457014
+           1 |   .2639324   .0261562    10.09   0.000     .2126672    .3151977
+           2 |    .270967   .0253986    10.67   0.000     .2211866    .3207474
+           3 |    .283611    .029183     9.72   0.000     .2264135    .3408086
+------------------------------------------------------------------------------
+
+
 
 
 {marker background}{...}
@@ -73,7 +109,7 @@
 {marker remarks}{...}
 {title:Remarks}
 
-{pstd}The command returns, as part of {cmd:e()}, the coefficients and standard errors. See {cmd:ereturn list} after running the command. Typical post-estimation commands can be used, such as {cmd:outreg2} or {cmd:estout}.{p_end}
+{pstd}The command returns, as part of {cmd:e()}, the coefficients and standard errors. See {cmd:ereturn list} after running the command. Typical post-estimation commands can be used, such as {cmd:outreg2}, {cmd:estout}, or {cmd:coefplot}.{p_end}
 
 
 {marker authors}{...}

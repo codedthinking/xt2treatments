@@ -5,4 +5,5 @@ xt2treatments.sthlp
 LICENSE
 CITATION.cff
 test/create_test_data.do
-test/testdata.dta
+test/xt2treatments_testdata.dta
+test/xt2treatments_plot.png

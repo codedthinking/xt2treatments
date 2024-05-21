@@ -20,8 +20,7 @@ replace treatment_group = "B" if mod(i, 2) == 1
 generate treatmentA = (treatment_group == "A") & (t >= g)
 generate treatmentB = (treatment_group == "B") & (t >= g)
 
-generate y = sigma * cond(mod(_n, 2), 1, -1) + A * treatmentA + B * treatmentB
+generate y = sigma * invnormal(uniform()) + A * treatmentA + B * treatmentB
 replace y = y + (B - A) if (g==5) & treatmentB
 
-xtset i t
-save "test/testdata.dta", replace
+save "test/xt2treatments_testdata.dta", replace

@@ -1,6 +1,8 @@
-*! version 0.8.3 12may2024
+*! version 0.8.4 21may2024
 program xt2treatments, eclass
-syntax varname [if], treatment(varname) control(varname) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) graph]
+version 18.0
+
+syntax varname(numeric) [if], treatment(varname numeric) control(varname numeric) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) graph]
 if ("`baseline'" == "") {
     local baseline "-1"
 }
