@@ -1,0 +1,79 @@
+
+  ___  ____  ____  ____  ____ ®
+ /__    /   ____/   /   ____/      18.0
+___/   /   /___/   /   /___/       MP—Parallel Edition
+
+ Statistics and Data Science       Copyright 1985-2023 StataCorp LLC
+                                   StataCorp
+                                   4905 Lakeway Drive
+                                   College Station, Texas 77845 USA
+                                   800-STATA-PC        https://www.stata.com
+                                   979-696-4600        stata@stata.com
+
+Stata license: Single-user 2-core  perpetual
+Serial number: 501806323834
+  Licensed to: Miklos Koren
+               CEU MicroData
+
+Notes:
+      1. Stata is running in batch mode.
+      2. Unicode is supported; see help unicode_advice.
+      3. More than 2 billion observations are allowed; see help obs_advice.
+      4. Maximum number of variables is set to 5,000 but can be increased;
+          see help set_maxvar.
+
+. do test/create_test_data.do 
+
+. clear
+
+. set obs 1000
+Number of observations (_N) was 0, now 1,000.
+
+. * kudos to readers who figure out where this number comes from
+. set seed 9732
+
+. 
+. scalar A = 0.3
+
+. scalar B = 0.6
+
+. scalar sigma = 0.1
+
+. 
+. generate i = int((_n - 1)/10) + 1
+
+. generate t = _n - int((_n - 1)/10)*10
+
+. generate g = 4
+
+. replace g = 6 if i > 50
+(500 real changes made)
+
+. * group 1 and 2 are special to illustrate weighting
+. replace g = 5 if inlist(i, 1, 2)
+(20 real changes made)
+
+. 
+. generate str treatment_group = "A" if mod(i, 2) == 0
+(500 missing values generated)
+
+. replace treatment_group = "B" if mod(i, 2) == 1
+(500 real changes made)
+
+. 
+. generate treatmentA = (treatment_group == "A") & (t >= g)
+
+. generate treatmentB = (treatment_group == "B") & (t >= g)
+
+. 
+. generate y = sigma * invnormal(uniform()) + A * treatmentA + B * treatmentB
+
+. replace y = y + (B - A) if (g==5) & treatmentB
+(6 real changes made)
+
+. 
+. save "test/xt2treatments_testdata.dta", replace
+file test/xt2treatments_testdata.dta saved
+
+. 
+end of do-file
