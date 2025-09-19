@@ -2,7 +2,7 @@
 program xt2treatments, eclass
 version 18.0
 
-syntax varname(numeric) [if], treatment(varname numeric) control(varname numeric) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) graph]
+syntax varname(numeric) [if], treatment(varname numeric) control(varname numeric) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) cluster(varname) graph]
 * read panel structure
 xtset
 local group = r(panelvar)
