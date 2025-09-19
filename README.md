@@ -1,7 +1,7 @@
 ---
-author: Koren, Miklós (https://koren.mk)
-date: 2024-05-21
-version: 0.8.4
+author: Koren, Miklós (https://koren.dev)
+date: 2025-09-19
+version: 0.9.0
 title: XT2TREATMENTS - event study with two treatments
 description: |
     Computes the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
@@ -13,7 +13,7 @@ requires: Stata version 18
 
 # Syntax
 
-- `xt2treatments` varname(numeric) [*if*], **treatment**(varname numeric) **control**(varname numeric), [**pre**(#) **post**(#) **baseline**(*string*) **weighting**(string) **graph**]
+- `xt2treatments` varname(numeric) [*if*], **treatment**(varname numeric) **control**(varname numeric), [**pre**(#) **post**(#) **baseline**(*string*) **weighting**(string) **cluster**(varname) **graph**]
 
 `xt2treatments` estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control. 
 
@@ -32,6 +32,7 @@ Option | Description
 **post** | Number of periods after treatment to include in the estimation (default 3)
 **baseline** | Either a negative number between `-pre` and `-1` or `average`, or `atet`. If `-k`, the baseline is the kth period before the treatment. If `average`, the baseline is the average of the pre-treatment periods. If `atet`, the regression table reports the average of the post-treatment periods minus the average of the pre-treatment periods. Default is `-1`.
 **weighting** | Method to weight different cohorts in the estimation.
+**cluster** | Variable to cluster standard errors. If not specified, the panel identifier is used.
 **graph** (optional) | Plot the event study graph with the default settings of `hetdid_coefplot`.
 
 ## Weighting methods

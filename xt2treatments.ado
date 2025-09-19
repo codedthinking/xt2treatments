@@ -1,24 +1,27 @@
-*! version 0.8.4 21may2024
+*! version 0.9.0 19sep2025
 program xt2treatments, eclass
 version 18.0
 
 syntax varname(numeric) [if], treatment(varname numeric) control(varname numeric) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) graph]
+* read panel structure
+xtset
+local group = r(panelvar)
+local time = r(timevar)
+local y `varlist'
+
 if ("`baseline'" == "") {
     local baseline "-1"
 }
 if ("`weighting'" == "") {
     local weighting "equal"
 }
+if ("`cluster'" == "") {
+    local cluster "`group'"
+}
 local T1 = `pre'-1
 local K = `pre'+`post'+1
 
 marksample touse
-
-* read panel structure
-xtset
-local group = r(panelvar)
-local time = r(timevar)
-local y `varlist'
 
 tempvar yg  evert everc time_g dy eventtime n_g n_gt
 tempname w W0 bad_coef bad_Var b V Wcum Wsum D  
@@ -93,7 +96,7 @@ forvalues g = 1/`G' {
 }
 
 ***** This is the actual estimation
-quietly reghdfe `dy' _att_*_* if `touse', a(`time_g'##`time') cluster(`group') nocons
+quietly reghdfe `dy' _att_*_* if `touse', a(`time_g'##`time') cluster(`cluster') nocons
 matrix `bad_coef' = e(b)
 matrix `bad_Var' = e(V)
 

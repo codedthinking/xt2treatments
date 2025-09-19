@@ -3,7 +3,7 @@ v 3
 
 d XT2TREATMENTS - event study with two treatments
 d
-d Authors: Koren, Miklós (https://koren.mk)
+d Authors: Koren, Miklós (https://koren.dev)
 d Support: 
 d 
 d Computes the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
@@ -13,7 +13,7 @@ d https://github.com/codedthinking/xt2treatments
 d
 d Requires: Stata version 18
 d
-d Distribution-Date: 20240521
+d Distribution-Date: 20250919
 d
 
 

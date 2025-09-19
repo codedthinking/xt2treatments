@@ -1,5 +1,5 @@
 
 v 3
-d Koren, Miklós (https://koren.mk)
+d Koren, Miklós (https://koren.dev)
 d https://github.com/codedthinking/xt2treatments
 p xt2treatments XT2TREATMENTS - event study with two treatments
