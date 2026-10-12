@@ -13,7 +13,7 @@ d https://github.com/codedthinking/xt2treatments
 d
 d Requires: Stata version 18
 d
-d Distribution-Date: 20250919
+d Distribution-Date: 20261012
 d
 
 
@@ -26,3 +26,4 @@ f CITATION.cff
 f test/create_test_data.do
 f test/xt2treatments_testdata.dta
 f test/xt2treatments_plot.png
+f test/test_xt2treatments_aw.do

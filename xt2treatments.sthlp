@@ -8,7 +8,7 @@
 {marker syntax}{...}
 {title:Syntax}
 
-{text}{phang2}{cmd:xt2treatments} varname(numeric) [{it:if}], {bf:treatment}(varname numeric) {bf:control}(varname numeric), [{bf:pre}(#) {bf:post}(#) {bf:baseline}({it:string}) {bf:weighting}(string) {bf:cluster}(varname) {bf:graph}]{p_end}
+{text}{phang2}{cmd:xt2treatments} varname(numeric) [{it:if}] [{bf:aw}={it:exp}], {bf:treatment}(varname numeric) {bf:control}(varname numeric), [{bf:pre}(#) {bf:post}(#) {bf:baseline}({it:string}) {bf:weighting}(string) {bf:cluster}(varname) {bf:graph}]{p_end}
 
 
 {pstd}{cmd:xt2treatments} estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control.{p_end}
@@ -30,6 +30,7 @@
 {synoptline}
 {synopt:{bf:treatment}}Dummy variable indicating the treatment of interest.{p_end}
 {synopt:{bf:control}}Dummy variable indicating the control treatment.{p_end}
+{synopt:{bf:aw}}Nonnegative analytical weights. Missing and zero weights are excluded. Analytical weights affect baseline means, cohort-time ATT estimates and their standard errors, and aggregation across cohorts and times.{p_end}
 {synopt:{bf:pre}}Number of periods before treatment to include in the estimation (default 1){p_end}
 {synopt:{bf:post}}Number of periods after treatment to include in the estimation (default 3){p_end}
 {synopt:{bf:baseline}}Either a negative number between {cmd:-pre} and {cmd:-1} or {cmd:average}, or {cmd:atet}. If {cmd:-k}, the baseline is the kth period before the treatment. If {cmd:average}, the baseline is the average of the pre-treatment periods. If {cmd:atet}, the regression table reports the average of the post-treatment periods minus the average of the pre-treatment periods. Default is {cmd:-1}.{p_end}
@@ -42,12 +43,14 @@
 {marker weighting-methods}{...}
 {dlgtab:Weighting methods}
 
+{pstd}Let {cmd:m0} and {cmd:m1} denote the control and treated mass in a cohort-time cell. Without analytical weights, these are observation counts. With analytical weights, they are sums of the analytical weights.{p_end}
+
 {synoptset tabbed}{...}
 {synopthdr:Method}
 {synoptline}
-{synopt:{bf:equal} (default)}Each cohort is weighted equally.{p_end}
-{synopt:{bf:proportional}}Cohorts are weighted linearly by the number of observations, (n0 + n1), where n0 is the number of controls, n1 is the number of treated units.{p_end}
-{synopt:{bf:optimal}}Cohorts are weighted by the inverse of the standard error of the treatment effect estimate of the cohort, (n0 * n1) / (n0 + n1).{p_end}
+{synopt:{bf:equal} (default)}Each estimable cohort-time cell is weighted equally.{p_end}
+{synopt:{bf:proportional}}Cohort-time cells are weighted by {cmd:m0 + m1}.{p_end}
+{synopt:{bf:optimal}}Cohort-time cells are weighted by {cmd:(m0 * m1) / (m0 + m1)}.{p_end}
 {synoptline}
 
 
@@ -59,6 +62,11 @@
 {p 8 16 2}xtset i t
 
 {p 8 16 2}xt2treatments y, treatment(treatmentB) control(treatmentA) pre(1) post(3) weighting(equal)
+
+{pstd}Analytical weights use native Stata weight syntax:{p_end}
+
+{p 8 16 2}generate double aw = cond(i <= 50, 2, 1)
+xt2treatments y [aw=aw], treatment(treatmentB) control(treatmentA) pre(1) post(3) weighting(optimal)
 
 {p 8 16 2}Panel variable: i (strongly balanced)
  Time variable: t, 1 to 10

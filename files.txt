@@ -7,3 +7,4 @@ CITATION.cff
 test/create_test_data.do
 test/xt2treatments_testdata.dta
 test/xt2treatments_plot.png
+test/test_xt2treatments_aw.do

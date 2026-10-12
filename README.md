@@ -1,7 +1,7 @@
 ---
 author: Koren, Miklós (https://koren.dev)
-date: 2025-09-19
-version: 0.9.0
+date: 2026-10-12
+version: 0.10.0
 title: XT2TREATMENTS - event study with two treatments
 description: |
     Computes the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.
@@ -13,9 +13,9 @@ requires: Stata version 18
 
 # Syntax
 
-- `xt2treatments` varname(numeric) [*if*], **treatment**(varname numeric) **control**(varname numeric), [**pre**(#) **post**(#) **baseline**(*string*) **weighting**(string) **cluster**(varname) **graph**]
+- `xt2treatments` varname(numeric) [*if*] [**aw**=*exp*], **treatment**(varname numeric) **control**(varname numeric), [**pre**(#) **post**(#) **baseline**(*string*) **weighting**(string) **cluster**(varname) **graph**]
 
-`xt2treatments` estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control. 
+`xt2treatments` estimates average treatment effects on the treated (ATT) when there are two treatments. The first treatment is the treatment of interest, and the second treatment is the control.
 
 The package can be installed with
 ```
@@ -28,6 +28,7 @@ Option | Description
 -------|------------
 **treatment** | Dummy variable indicating the treatment of interest.
 **control** | Dummy variable indicating the control treatment.
+**aw** | Nonnegative analytical weights. Missing and zero weights are excluded. Analytical weights affect baseline means, cohort-time ATT estimates and their standard errors, and aggregation across cohorts and times.
 **pre** | Number of periods before treatment to include in the estimation (default 1)
 **post** | Number of periods after treatment to include in the estimation (default 3)
 **baseline** | Either a negative number between `-pre` and `-1` or `average`, or `atet`. If `-k`, the baseline is the kth period before the treatment. If `average`, the baseline is the average of the pre-treatment periods. If `atet`, the regression table reports the average of the post-treatment periods minus the average of the pre-treatment periods. Default is `-1`.
@@ -36,11 +37,14 @@ Option | Description
 **graph** (optional) | Plot the event study graph with the default settings of `hetdid_coefplot`.
 
 ## Weighting methods
+
+Let `m0` and `m1` denote the control and treated mass in a cohort-time cell. Without analytical weights, these are observation counts. With analytical weights, they are sums of the analytical weights.
+
 Method | Description
 -------|------------
-**equal** (default) | Each cohort is weighted equally.
-**proportional** | Cohorts are weighted linearly by the number of observations, (n0 + n1), where n0 is the number of controls, n1 is the number of treated units.
-**optimal** | Cohorts are weighted by the inverse of the standard error of the treatment effect estimate of the cohort, (n0 * n1) / (n0 + n1).
+**equal** (default) | Each estimable cohort-time cell is weighted equally.
+**proportional** | Cohort-time cells are weighted by `m0 + m1`.
+**optimal** | Cohort-time cells are weighted by `(m0 * m1) / (m0 + m1)`.
 
 # Examples
 ```
@@ -53,6 +57,12 @@ xtset i t
 xt2treatments y, treatment(treatmentB) control(treatmentA) pre(1) post(3) weighting(equal)
 ```
 
+Analytical weights use native Stata weight syntax:
+
+```stata
+generate double aw = cond(i <= 50, 2, 1)
+xt2treatments y [aw=aw], treatment(treatmentB) control(treatmentA) pre(1) post(3) weighting(optimal)
+```
 
 ```
 Panel variable: i (strongly balanced)

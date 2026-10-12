@@ -1,8 +1,8 @@
-*! version 0.9.0 19sep2025
+*! version 0.10.0 12oct2026
 program xt2treatments, eclass
 version 18.0
 
-syntax varname(numeric) [if], treatment(varname numeric) control(varname numeric) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) cluster(varname) graph]
+syntax varname(numeric) [if] [aweight], treatment(varname numeric) control(varname numeric) [, pre(integer 1) post(integer 3) baseline(string) weighting(string) cluster(varname) graph]
 * read panel structure
 xtset
 local group = r(panelvar)
@@ -23,8 +23,24 @@ local K = `pre'+`post'+1
 
 marksample touse
 
-tempvar yg  evert everc time_g dy eventtime n_g n_gt
-tempname w W0 bad_coef bad_Var b V Wcum Wsum D  
+tempvar awvar
+local awopt
+if ("`weight'" != "") {
+    quietly generate double `awvar' `exp' if `touse'
+    capture assert `awvar' >= 0 if `touse' & !missing(`awvar')
+    if (_rc) {
+        display in red "Analytical weights must be nonnegative"
+        error 402
+    }
+    quietly replace `touse' = 0 if missing(`awvar') | `awvar' == 0
+    local awopt "[aw=`awvar']"
+}
+else {
+    quietly generate double `awvar' = 1 if `touse'
+}
+
+tempvar yg awnum awden evert everc time_g dy eventtime n_g n_gt
+tempname w W0 bad_coef bad_Var b V Wcum Wsum D A0 A1 C
 
 quietly egen `evert' = max(cond(`touse', `treatment', 0)), by(`group')
 quietly egen `everc' = max(cond(`touse', `control', 0)), by(`group')
@@ -57,7 +73,6 @@ local G : word count `gs'
 local T : word count `ts'
 local N = `G' * (`T' - 1)
 
-tempname n1 n0
 matrix `w' = J(`G', `T', 0.0)
 forvalues g = 1/`G' {
     forvalues t = 2/`T' {
@@ -65,45 +80,58 @@ forvalues g = 1/`G' {
         local cohort : word `g' of `gs'
         local e = `time_t' - `cohort'
         if inrange(`e', -`pre', `post') {
-            quietly count if `time_g' == `cohort' & (`touse') & `everc' & `time_t' == `time'
-            scalar `n0' = r(N)
-            quietly count if `time_g' == `cohort' & (`touse') & `evert' & `time_t' == `time'
-            scalar `n1' = r(N)
+            quietly summarize `awvar' if `time_g' == `cohort' & `touse' & `everc' & `time_t' == `time', meanonly
+            scalar `A0' = r(sum)
+            quietly summarize `awvar' if `time_g' == `cohort' & `touse' & `evert' & `time_t' == `time', meanonly
+            scalar `A1' = r(sum)
             if ("`weighting'" == "equal") {
-                * if either of the groups has no observations, we cannot estimate a treatment effect
-                matrix `w'[`g', `t'] = cond(`n0'*`n1'==0, 0.0, 1.0)
+                * if either group has no positive weight, we cannot estimate a treatment effect
+                matrix `w'[`g', `t'] = cond(`A0' * `A1' == 0, 0.0, 1.0)
             }
             if ("`weighting'" == "proportional") {
-                matrix `w'[`g', `t'] = cond(`n0'*`n1'==0, 0.0, `n0' + `n1')
+                matrix `w'[`g', `t'] = cond(`A0' * `A1' == 0, 0.0, `A0' + `A1')
             }
             if ("`weighting'" == "optimal") {
-                matrix `w'[`g', `t'] = cond(`n0'*`n1'==0, 0.0, `n0' * `n1' / (`n0' + `n1'))
+                matrix `w'[`g', `t'] = cond(`A0' * `A1' == 0, 0.0, `A0' * `A1' / (`A0' + `A1'))
             }
         }
     }
 }
 
-quietly egen `yg' = mean(cond(`eventtime' == -1, `y', .)) if `touse', by(`group')
+quietly egen `awnum' = total(cond(`eventtime' == -1, `awvar' * `y', .)) if `touse', by(`group')
+quietly egen `awden' = total(cond(`eventtime' == -1, `awvar', .)) if `touse', by(`group')
+capture assert `awden' > 0 if `touse'
+if (_rc) {
+    display in red "Some groups have no positive analytical weight in the baseline period"
+    error 2000
+}
+quietly generate `yg' = `awnum' / `awden' if `touse'
 quietly generate `dy' = `y' - `yg' if `touse'
 
 capture drop _att_*
+capture drop _base_*
 forvalues g = 1/`G' {
     forvalues t = 2/`T' {
         local running_time : word `t' of `ts'
         local treatment_time : word `g' of `gs'
         quietly generate byte _att_`g'_`t' = cond(`time_g' == `treatment_time' & `time' == `running_time', `evert', 0) if `touse'
+        quietly generate byte _base_`g'_`t' = cond(`time_g' == `treatment_time' & `time' == `running_time', `everc', 0) if `touse'
     }
 }
 
 ***** This is the actual estimation
-quietly reghdfe `dy' _att_*_* if `touse', a(`time_g'##`time') cluster(`cluster') nocons
+quietly reghdfe `dy' _att_*_* _base_*_* `awopt' if `touse', cluster(`cluster') nocons
 matrix `bad_coef' = e(b)
 matrix `bad_Var' = e(V)
 
-local GT = colsof(`bad_coef')
+local GT = `G' * (`T' - 1)
+assert colsof(`bad_coef') == 2 * `GT'
+assert colsof(`bad_Var') == 2 * `GT'
 
-assert `GT' == `G' * `=`T'-1'
-assert colsof(`bad_Var') == `GT'
+* convert treated and control means into cohort-time treatment effects
+matrix `C' = (I(`GT') \ -I(`GT'))
+matrix `bad_coef' = `bad_coef' * `C'
+matrix `bad_Var' = `C'' * `bad_Var' * `C'
 
 matrix `Wcum' = J(`GT', `K', 0)
 local i = 1
@@ -131,6 +159,7 @@ local Nobs = r(N)
 ******
 
 capture drop _att_*
+capture drop _base_*
 
 if ("`baseline'" == "average") {
     matrix `W0' = I(`K') - (J(`K', `pre', 1/`pre'), J(`K', `post'+1, 0))
@@ -182,6 +211,10 @@ ereturn post `b' `V', obs(`Nobs') esample(`esample')
 ereturn local depvar `y'
 ereturn local cmd xt2treatments
 ereturn local cmdline xt2treatments `0'
+if ("`weight'" != "") {
+    ereturn local wtype "`weight'"
+    ereturn local wexp "`exp'"
+}
 
 _coef_table_header, title(Event study relative to `baseline') width(62)
 display
