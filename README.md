@@ -1,7 +1,7 @@
 ---
 author: Koren, Miklós (https://koren.dev)
-date: 2026-10-12
-version: 0.10.0
+date: 2026-10-13
+version: 0.10.1
 title: XT2TREATMENTS - event study with two treatments
 description: |
     Computes the average treatment effect on the treated (ATT), where the control is another treatment happening at the same time.

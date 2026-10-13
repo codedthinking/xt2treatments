@@ -1,4 +1,4 @@
-*! version 0.10.0 12oct2026
+*! version 0.10.1 13oct2026
 program xt2treatments, eclass
 version 18.0
 
@@ -40,7 +40,7 @@ else {
 }
 
 tempvar yg awnum awden evert everc time_g dy eventtime n_g n_gt
-tempname w W0 bad_coef bad_Var b V Wcum Wsum D A0 A1 C
+tempname w W0 bad_coef bad_Var b V Wcum Wsum D A0 A1
 
 quietly egen `evert' = max(cond(`touse', `treatment', 0)), by(`group')
 quietly egen `everc' = max(cond(`touse', `control', 0)), by(`group')
@@ -109,29 +109,22 @@ quietly generate `yg' = `awnum' / `awden' if `touse'
 quietly generate `dy' = `y' - `yg' if `touse'
 
 capture drop _att_*
-capture drop _base_*
 forvalues g = 1/`G' {
     forvalues t = 2/`T' {
         local running_time : word `t' of `ts'
         local treatment_time : word `g' of `gs'
         quietly generate byte _att_`g'_`t' = cond(`time_g' == `treatment_time' & `time' == `running_time', `evert', 0) if `touse'
-        quietly generate byte _base_`g'_`t' = cond(`time_g' == `treatment_time' & `time' == `running_time', `everc', 0) if `touse'
     }
 }
 
 ***** This is the actual estimation
-quietly reghdfe `dy' _att_*_* _base_*_* `awopt' if `touse', cluster(`cluster') nocons
+quietly reghdfe `dy' _att_*_* `awopt' if `touse', a(`time_g'##`time') cluster(`cluster') nocons
 matrix `bad_coef' = e(b)
 matrix `bad_Var' = e(V)
 
-local GT = `G' * (`T' - 1)
-assert colsof(`bad_coef') == 2 * `GT'
-assert colsof(`bad_Var') == 2 * `GT'
-
-* convert treated and control means into cohort-time treatment effects
-matrix `C' = (I(`GT') \ -I(`GT'))
-matrix `bad_coef' = `bad_coef' * `C'
-matrix `bad_Var' = `C'' * `bad_Var' * `C'
+local GT = colsof(`bad_coef')
+assert `GT' == `G' * (`T' - 1)
+assert colsof(`bad_Var') == `GT'
 
 matrix `Wcum' = J(`GT', `K', 0)
 local i = 1
@@ -159,7 +152,6 @@ local Nobs = r(N)
 ******
 
 capture drop _att_*
-capture drop _base_*
 
 if ("`baseline'" == "average") {
     matrix `W0' = I(`K') - (J(`K', `pre', 1/`pre'), J(`K', `post'+1, 0))
